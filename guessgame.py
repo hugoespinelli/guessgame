@@ -4,7 +4,7 @@ from tkinter import *
 class Tela(object):
 
     LARGURA = 800;
-    ALTURA = 800;
+    ALTURA = 400;
 
     status1 = ''
     status2 = ''
@@ -14,6 +14,8 @@ class Tela(object):
         self.root.geometry('%ix%i' % (self.LARGURA, self.ALTURA))
         self.root.title('Guess Game')
         
+        self.guessgame = GuessGame()
+
         self.renderizaTela()
 
         self.root.mainloop()
@@ -25,7 +27,7 @@ class Tela(object):
     def renderizaTela(self):
         self.frame = Frame(pady = 50)
         self.frame.pack();
-        self.l = Label(self.frame, text = "Bem vindo ao GuessGame")
+        self.l = Label(self.frame, text = "Bem vindo ao GuessGame", font=("Arial", 32), pady=40)
         self.l.pack();
 
         self.frame_instrucoes = Frame(self.frame);
@@ -39,18 +41,58 @@ class Tela(object):
         self.l3.pack(side = LEFT);
         self.input_palpite = Entry(self.frame_campo);
         self.input_palpite.pack(side = LEFT);
+        self.input_palpite.focus()
+        self.b = Button(self.frame_campo, text="Dar Palpite", command = self.darPalpite)
+        self.b.pack(side= LEFT)
+        self.b2 = Button(self.frame_campo, text='Jogar Novamente', command = self.reiniciarJogo)
+
+        self.frame_tentativas = Frame(self.frame);
+        self.frame_tentativas.pack();
+        self.label_tentativa = Label(self.frame_tentativas, text='Tentativas:')
+        self.label_numero_tentativa = Label(self.frame_tentativas, text='0')
+        self.label_tentativa.pack(side = LEFT);
+        self.label_numero_tentativa.pack(side = LEFT);
+
 
         self.frame_lista_palpites = Frame(self.frame);
         self.frame_lista_palpites.pack();
         self.l4 = Label(self.frame_lista_palpites, text="Palpites: ");
         self.l4.pack(side =  LEFT);
+        self.label_palpites = Label(self.frame_lista_palpites, text='')
+        self.label_palpites.pack()
 
-        self.frame_dica = Frame(self.frame);
+        self.frame_dica = Frame(self.frame, highlightbackground="green", highlightthickness=1, width=100);
         self.frame_dica.pack();
         self.l5 = Label(self.frame_dica, text="Dica: ");
         self.l5.pack(side =  LEFT);
+        self.label_dica = Label(self.frame_dica)
+        self.label_dica.pack(side = LEFT)
 
+    def darPalpite(self):
+        dica = self.guessgame.getDica(self.input_palpite.get())
+        
+        self.label_dica['text'] = dica
+        self.label_numero_tentativa['text'] = self.guessgame.tentativa
+        self.label_palpites['text'] = self.guessgame.palpites
+        self.input_palpite.delete(0, len(self.input_palpite.get()))
 
+        if(self.guessgame.game_over):
+            self.acabaJogo()
+
+    def acabaJogo(self):
+        self.input_palpite['state'] = DISABLED
+        self.b.forget()
+        self.b2.pack()
+
+    def reiniciarJogo(self):
+        del self.guessgame
+        self.guessgame = GuessGame()
+        self.b.pack()
+        self.b2.forget()
+        self.input_palpite['state'] = NORMAL
+        self.label_dica['text'] = ''
+        self.label_numero_tentativa['text'] = 0
+        self.label_palpites['text'] = ''
 
 
 class GuessGame(object):
@@ -60,36 +102,47 @@ class GuessGame(object):
         self.numero_gerado = random.randrange(1, 101);
         self.tentativa = 0;
         self.game_over = False;
+        self.palpites = []
 
-    def executarJogada(self, palpite):
+    def getDica(self, palpite):
+        
+        palpite = int(palpite)
 
-    	# Checa se palpite esta valido
-    	if(not self.isPalpiteValido(palpite)):
-    	    return '';
-    	# Checa se palpite é o numero gerado
-    	if(palpite == self.numero_gerado):
-    	    return 'Parabens!'
+        print(self.numero_gerado)
+        
+        # Checa se palpite esta valido
+        if not self.isPalpiteValido(palpite):
+            return 'Palpite inválido, por favor digite novamente';
 
-    	self.tentativa += 1;
+        self.tentativa += 1;
+        self.palpites.append(palpite)
+        
+        # Checa se palpite é o numero gerado
+        if(palpite == self.numero_gerado):
+            self.game_over = True;
+            return 'Parabens!'
 
-
+        if(self.tentativa == 10):
+            self.game_over = True
+            return 'Infelizmente você perdeu! Mas não desanime, jogue novamente!'
+        
+        
 	# Carrega status
-    # 	if self.tentativa == 1:
-    #        self.status1 = ''
-    #        self.status2 = self.SetStatus(palpite)
-    #     else:
-    #        self.status1 = self.status2
-    #        self.status2 = self.SetStatus(palpite)
-	    
-    # # Retorna mensagem da pista
-	   # return self.FornecerPista(self.status1, self.status2)
-
+        if self.tentativa == 1:
+            self.status1 = ''
+            self.status2 = self.SetStatus(palpite)
+        else:
+            self.status1 = self.status2
+            self.status2 = self.SetStatus(palpite)
+            
+        # Retorna mensagem da pista
+        return self.FornecerPista(self.status1, self.status2)
 
 
     def isPalpiteValido(self, palpite):
         try:
             self.palpite = int(palpite)
-            if (self.palpite < 1) or (self.palpite > 100):
+            if (self.palpite < 1) or (self.palpite > 100) or (self.palpite in self.palpites):
                 raise ValueError
         except ValueError:
             return False;
@@ -164,38 +217,3 @@ class GuessGame(object):
         return mensagem
 
 Tela()
-
-#
-# apresentar jogo ao usuário
-#
-# print('Você tem 10 chances de acertar o número que eu estou pensando.')
-# print('Trata-se de um valor entre 1 e 100. Então, vamos lá!')
-# print()
-
-#
-# repetir 10 vezes:
-#
-# for tentativa in range(1,11):
-# #   ler e validar palpite
-    
-# #   testar palpite
-#     if palpite == n:
-#         acertou = True
-#         break
-# #   determinar status do palpite
-#     if tentativa == 1:
-#         status1 = ''
-#         status2 = SetStatus(n, palpite)
-#     else:
-#         status1 = status2
-#         status2 = SetStatus(n, palpite)
-# #   fornecer pista ao jogador
-#     FornecerPista(status1, status2)
-# # comunicar resultado ao usuário
-# if acertou:
-#     print('\nParabéns !')
-#     print('\nVocê acertou o número ', n, ' após ', tentativa, ' tentativa(s) !!!')
-#     print('\n\nAté mais !!')
-# else:
-#     print('\nLamento, mas após ', tentativa, ' tentativas, você não conseguiu acertar o número ', n, ' que eu estava pensando !!!')
-#     print('\n\nAté mais !!')
