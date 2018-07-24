@@ -1,13 +1,18 @@
 import random
 from tkinter import *
+from PIL import Image, ImageTk
 
 class Tela(object):
 
-    LARGURA = 800;
-    ALTURA = 400;
+    LARGURA = 562;
+    ALTURA = 430;
 
     status1 = ''
     status2 = ''
+
+    color_bg = '#879BDD'
+    color_enfasis = '#425AA8'
+    color_text= 'white'
 
     def __init__(self):
         self.root = Tk()
@@ -16,6 +21,11 @@ class Tela(object):
         
         self.guessgame = GuessGame()
 
+        # Foto do guessgame
+        temp_image = Image.open('banner.png')
+        temp_image = temp_image.resize((558, 140), Image.ANTIALIAS)
+        self.photo = ImageTk.PhotoImage(temp_image)
+        
         self.renderizaTela()
 
         self.root.mainloop()
@@ -25,70 +35,98 @@ class Tela(object):
         return 'O jogador terá de adivinhar em 10 tentativas um número gerado aleatoriamente de 1 a 100'
 
     def renderizaTela(self):
-        self.frame = Frame(pady = 50)
+        self.frame = Frame(pady = 50, bg=self.color_bg)
         self.frame.pack();
-        self.l = Label(self.frame, text = "Bem vindo ao GuessGame", font=("Arial", 32), pady=40)
+        self.l = Label(self.frame, text = "Bem vindo ao GuessGame",
+                       font=("Arial", 30), pady=40, bg=self.color_bg,
+                       fg=self.color_text, padx=30, image=self.photo)
         self.l.pack();
 
+        # Instrucoes
         self.frame_instrucoes = Frame(self.frame);
         self.frame_instrucoes.pack()
-        self.l2 = Label(self.frame, text = self.getMensagemInstrucao())
+        self.l2 = Label(self.frame, text = self.getMensagemInstrucao(),
+                        pady=10, bg=self.color_bg, fg=self.color_text)
         self.l2.pack()
 
-        self.frame_campo = Frame(self.frame);
+        # Palpites
+        self.frame_campo = Frame(self.frame, bg=self.color_bg);
         self.frame_campo.pack();
-        self.l3= Label(self.frame_campo, text= "Qual é o seu palpite?");
+        self.l3= Label(self.frame_campo, text= "Qual é o seu palpite?", bg=self.color_bg, fg=self.color_text);
         self.l3.pack(side = LEFT);
-        self.input_palpite = Entry(self.frame_campo);
-        self.input_palpite.pack(side = LEFT);
+        self.input_palpite = Entry(self.frame_campo, bg='#B9BAF1');
+        self.input_palpite.pack(side = LEFT, padx=10);
         self.input_palpite.focus()
-        self.b = Button(self.frame_campo, text="Dar Palpite", command = self.darPalpite)
+        self.b = Button(self.frame_campo, text="Dar Palpite", command = self.darPalpite,
+                        bg=self.color_enfasis, font=("Arial", 8, 'bold'), fg='white')
         self.b.pack(side= LEFT)
-        self.b2 = Button(self.frame_campo, text='Jogar Novamente', command = self.reiniciarJogo)
+        self.b2 = Button(self.frame_campo, text='Jogar Novamente', command = self.reiniciarJogo,
+                         bg=self.color_enfasis, font=("Arial", 8, 'bold'), fg='white')
 
+        # Tentativas
         self.frame_tentativas = Frame(self.frame);
         self.frame_tentativas.pack();
-        self.label_tentativa = Label(self.frame_tentativas, text='Tentativas:')
-        self.label_numero_tentativa = Label(self.frame_tentativas, text='0')
+        self.label_tentativa = Label(self.frame_tentativas, text='Tentativas:', bg=self.color_bg, fg=self.color_text)
+        self.label_numero_tentativa = Label(self.frame_tentativas, text='0', bg=self.color_bg, fg=self.color_text)
         self.label_tentativa.pack(side = LEFT);
         self.label_numero_tentativa.pack(side = LEFT);
 
-
+        # Lista de palpites
         self.frame_lista_palpites = Frame(self.frame);
         self.frame_lista_palpites.pack();
-        self.l4 = Label(self.frame_lista_palpites, text="Palpites: ");
+        self.l4 = Label(self.frame_lista_palpites, text="Palpites: ", bg=self.color_bg, fg=self.color_text);
         self.l4.pack(side =  LEFT);
-        self.label_palpites = Label(self.frame_lista_palpites, text='')
+        self.label_palpites = Label(self.frame_lista_palpites, text='', bg=self.color_bg, fg=self.color_text)
         self.label_palpites.pack()
-
-        self.frame_dica = Frame(self.frame, highlightbackground="green", highlightthickness=1, width=100);
+        
+        # Dicas
+        self.frame_dica = Frame(self.frame, width=100, bg=self.color_bg);
         self.frame_dica.pack();
-        self.l5 = Label(self.frame_dica, text="Dica: ");
+        self.l5 = Label(self.frame_dica, text="Dica: ", bg=self.color_bg, fg=self.color_text, pady=10);
         self.l5.pack(side =  LEFT);
-        self.label_dica = Label(self.frame_dica)
+        self.label_dica = Label(self.frame_dica, bg=self.color_bg, font=("Arial", 12, 'bold'),fg='#F8C34E')
         self.label_dica.pack(side = LEFT)
 
+        # Numero Gerado
+        self.frame_numero = Frame(self.frame, bg=self.color_bg, heigh=40);
+        self.frame_numero.pack();
+        self.l6 = Label(self.frame_numero, text="Numero gerado: ", bg=self.color_bg, fg=self.color_text )
+        self.l7 = Label(self.frame_numero, text="", bg=self.color_bg, font=("Arial", 12, 'bold'),fg='#F8C34E' )
+
     def darPalpite(self):
-        dica = self.guessgame.getDica(self.input_palpite.get())
         
+        dica = self.guessgame.getDica(self.input_palpite.get())
+
+        # Atualiza as Labels das dicas, palpites e tentativas
         self.label_dica['text'] = dica
         self.label_numero_tentativa['text'] = self.guessgame.tentativa
         self.label_palpites['text'] = self.guessgame.palpites
+
+        # Apaga o que está escrito no Entry palpite
         self.input_palpite.delete(0, len(self.input_palpite.get()))
 
         if(self.guessgame.game_over):
             self.acabaJogo()
 
     def acabaJogo(self):
+
+        # Desabilita o botão do palpite, apaga botao de palpite e mostra botão de jogar novamente.
         self.input_palpite['state'] = DISABLED
         self.b.forget()
         self.b2.pack()
+
+        # Mostra o numero gerado pelo computador
+        self.l6.pack()
+        self.l7['text'] = self.guessgame.getNumeroGerado()
+        self.l7.pack()
 
     def reiniciarJogo(self):
         del self.guessgame
         self.guessgame = GuessGame()
         self.b.pack()
         self.b2.forget()
+        self.l6.forget()
+        self.l7.forget()
         self.input_palpite['state'] = NORMAL
         self.label_dica['text'] = ''
         self.label_numero_tentativa['text'] = 0
@@ -104,15 +142,16 @@ class GuessGame(object):
         self.game_over = False;
         self.palpites = []
 
-    def getDica(self, palpite):
-        
-        palpite = int(palpite)
+    def getNumeroGerado(self):
+        return self.numero_gerado
 
-        print(self.numero_gerado)
+    def getDica(self, palpite):
         
         # Checa se palpite esta valido
         if not self.isPalpiteValido(palpite):
             return 'Palpite inválido, por favor digite novamente';
+
+        palpite = int(palpite)
 
         self.tentativa += 1;
         self.palpites.append(palpite)
